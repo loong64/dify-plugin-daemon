@@ -1,0 +1,18 @@
+diff --git a/pkg/entities/constants/arch.go b/pkg/entities/constants/arch.go
+index 3e5ab55..b05358d 100644
+--- a/pkg/entities/constants/arch.go
++++ b/pkg/entities/constants/arch.go
+@@ -10,11 +10,12 @@ type Arch string
+ const (
+ 	AMD64 Arch = "amd64"
+ 	ARM64 Arch = "arm64"
++	LOONG64 Arch = "loong64"
+ )
+ 
+ func isAvailableArch(fl validator.FieldLevel) bool {
+ 	value := fl.Field().String()
+-	return value == string(AMD64) || value == string(ARM64)
++	return value == string(AMD64) || value == string(ARM64) || value == string(LOONG64)
+ }
+ 
+ func init() {

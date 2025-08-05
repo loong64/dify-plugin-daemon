@@ -78,7 +78,9 @@ jobs:
           sed -i 's@FROM alpine@FROM ghcr.io/loong64/alpine@g' ./docker/*.dockerfile
           sed -i 's@FROM golang@FROM ghcr.io/loong64/golang@g' ./docker/*.dockerfile
           sed -i 's@FROM ubuntu:24.04@FROM ghcr.io/loong64/debian:trixie@g' ./docker/*.dockerfile
+          sed -i 's@python3.12@python3.13@g' ./docker/*.dockerfile
           sed -i 's@pip install@pip install -i https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple@g' ./docker/*.dockerfile
+          wget -qO - https://github.com/loong64/dify-plugin-daemon/raw/refs/heads/main/patch_loong64.patch | git apply
 
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
@@ -119,9 +121,6 @@ jobs:
         run: |
           echo "Current Version: ${version}"
 
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
@@ -129,10 +128,6 @@ jobs:
           tag_name: ${{ env.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Cleanup
-        run: |
-          find . -mindepth 1 -delete
 
       - name: Checkout code
         uses: actions/checkout@v4
@@ -147,6 +142,7 @@ jobs:
 
       - name: Build CLI
         run: |
+          wget -qO - https://github.com/loong64/dify-plugin-daemon/raw/refs/heads/main/patch_loong64.patch | git apply
           go mod tidy
           CGO_ENABLED=0 GOOS=linux GOARCH=loong64 go build -ldflags "-X 'main.VersionX=v${{ env.version }}'" -o dify-plugin-linux-loong64 ./cmd/commandline
 
