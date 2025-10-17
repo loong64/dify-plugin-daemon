@@ -75,7 +75,8 @@ jobs:
 
       - name: Prepare
         run: |
-          sed -i 's@FROM alpine@FROM ghcr.io/loong64/alpine@g' ./docker/*.dockerfile
+          sed -i 's@amd64@loong64@g' ./docker/*.dockerfile
+          sed -i 's@FROM alpine:3.20@FROM ghcr.io/loong64/alpine:3.21@g' ./docker/*.dockerfile
           sed -i 's@FROM golang@FROM ghcr.io/loong64/golang@g' ./docker/*.dockerfile
           sed -i 's@FROM ubuntu:24.04@FROM ghcr.io/loong64/debian:trixie@g' ./docker/*.dockerfile
           sed -i 's@python3.12@python3.13@g' ./docker/*.dockerfile
@@ -103,7 +104,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           push: true
           build-args: |
-            VERSION=${{ env.version }}
+            VERSION=${{ github.sha }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name_env }}:${{ env.version }}-${{ matrix.scope }}
           outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=3,force-compression=true
