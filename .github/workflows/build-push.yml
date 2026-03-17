@@ -68,43 +68,44 @@ jobs:
           echo "Current Version: ${version}"
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: langgenius/dify-plugin-daemon
           ref: ${{ env.version }}
 
       - name: Prepare
         run: |
+          wget -qO - https://github.com/loong64/dify-plugin-daemon/raw/refs/heads/main/patch_loong64.patch | git apply
           sed -i 's@amd64@loong64@g' ./docker/*.dockerfile
-          sed -i 's@FROM alpine:3.20@FROM ghcr.io/loong64/alpine:3.21@g' ./docker/*.dockerfile
+          sed -i 's@FROM alpine@FROM ghcr.io/loong64/alpine@g' ./docker/*.dockerfile
           sed -i 's@FROM golang@FROM ghcr.io/loong64/golang@g' ./docker/*.dockerfile
           sed -i 's@FROM ubuntu:24.04@FROM ghcr.io/loong64/debian:trixie@g' ./docker/*.dockerfile
           sed -i 's@python3.12@python3.13@g' ./docker/*.dockerfile
-          sed -i 's@pip install@pip install -i https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple@g' ./docker/*.dockerfile
-          wget -qO - https://github.com/loong64/dify-plugin-daemon/raw/refs/heads/main/patch_loong64.patch | git apply
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./docker/${{ matrix.scope }}.dockerfile
           platforms: ${{ matrix.platform }}
           push: true
           build-args: |
-            VERSION=${{ github.sha }}
+            VERSION=v${{ env.version }}
+            PIP_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple
+            UV_EXTRA_INDEX_URL=https://gitlab.com/api/v4/projects/65746188/packages/pypi/simple
           tags: |
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name_env }}:${{ env.version }}-${{ matrix.scope }}
           cache-from: type=gha
@@ -130,15 +131,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: langgenius/dify-plugin-daemon
           ref: ${{ env.version }}
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.23'
+          go-version: stable
 
       - name: Build CLI
         run: |
